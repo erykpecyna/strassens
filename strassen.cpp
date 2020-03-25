@@ -1,5 +1,8 @@
 #include <stdio.h>
-#include "Matrix.h"
+
+struct Matrix {
+
+};
 
 int main(int argc, char* argv[]) {
   
