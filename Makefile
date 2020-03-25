@@ -1,16 +1,16 @@
 CXX = g++
 CXXFLAGS = -Wall -g -O0
 
-all: strassens
+all: strassen
 
-strassens: strassens.o matrix.o
-	$(CXX) $(CXXFLAGS) -o strassens strassens.o Matrix.o
+strassen: strassen.o matrix.o
+	$(CXX) $(CXXFLAGS) -o strassen strassen.o Matrix.o
 
-strassens.o: strassens.cpp
-	$(CXX) $(CXXFLAGS) -c strassens.cpp
+strassen.o: strassen.cpp
+	$(CXX) $(CXXFLAGS) -c strassen.cpp
 
 matrix.o: Matrix.h
 	$(CXX) $(CXXFLAGS) -c Matrix.cpp
 
 clean:
-	rm strassens *.o
+	rm strassen *.o
