@@ -4,7 +4,7 @@
 
 
 #define MAXLINE 256
-#define CUTOFF 600
+#define CUTOFF 200
 
 
 // NOTE: All matrix arithmetic assumes equal dimensions
