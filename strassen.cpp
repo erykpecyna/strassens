@@ -4,10 +4,8 @@
 
 const int MAXLINE = 256;
 
-// Note: this could have been done in half the lines of code but
-// by the time I realized I should be using inheritance, it was
-// too late for my lazy self to go back and change it. 
-
+// NOTE: All matrix arithmetic assumes equal dimensions
+// (No error handling)
 struct Matrix {
 	int* mat;
 	int actuald;
@@ -23,6 +21,42 @@ struct Matrix {
 
 		mat = new int[actuald*actuald];
 	};
+
+	Matrix(Matrix* q1, Matrix* q2, Matrix* q3, Matrix* q4, int parentd) {
+		this->d = parentd;
+		actuald = parentd;
+		int splitind = (parentd % 2 == 0) ? parentd / 2 : parentd / 2 + 1;
+
+		mat = new int[parentd * parentd];
+
+		// Quadrant 1
+		for(int row = 0; row < splitind; row++) {
+			for(int col = 0; col < splitind; col++) {
+				set(row, col, q1->get(row,col));
+			}
+		}
+
+		// Quadrant 2
+		for(int row = 0; row < splitind; row++) {
+			for(int col = splitind; col < parentd; col++) {
+				set(row, col, q2->get(row,col - splitind));
+			}
+		}
+
+		// Quadrant 3
+		for(int row = splitind; row < parentd; row++) {
+			for(int col = 0; col < splitind; col++) {
+				set(row, col, q3->get(row - splitind,col));
+			}
+		}
+
+		// Quadrant 4
+		for(int row = splitind; row < parentd; row++) {
+			for(int col = splitind; col < parentd; col++) {
+				set(row, col, q4->get(row - splitind,col- splitind));
+			}
+		}
+	}
 
 	~Matrix() {
 		delete mat;
@@ -52,11 +86,17 @@ struct Matrix {
 	// For testing
 	void printMatrix() {
 		for(int row = 0; row < d; row++) {
-			for(int col = 0; col < d; col++) 
-				printf("%i ", get(row,col));
+			printf("%i ", get(row,row));
 			printf("\n");
 		}
 	};
+	// void printMatrix() {
+	// 	for(int row = 0; row < d; row++) {
+	// 		for(int col = 0; col < d; col++) 
+	// 			printf("%i ", get(row,col));
+	// 		printf("\n");
+	// 	}
+	// };
 
 };
 
@@ -170,38 +210,112 @@ subMat* splitMatrix(Matrix* parent) {
 	return arr;
 }
 
-Matrix addMatrices(subMat* m1, subMat* m2, bool neg=false) {
-	int sub = neg ? -1 : 1;
-	Matrix res(m1->d);
+Matrix* addMatrices(subMat* m1, subMat* m2, bool neg=true) {
+	int sub = neg ? 1 : -1;
+	Matrix* res = new Matrix(m1->d);
 	for(int row = 0; row < m1->d; row++) {
 		for(int col = 0; col < m1->d; col++)
-			res.set(row,col,m1->get(row,col) + sub * m2->get(row, col));
+			res->set(row,col,m1->get(row,col) + sub * m2->get(row, col));
 	}
-
 	return res;
 }
 
-Matrix addMatrices(Matrix* m1, Matrix* m2, bool neg=false) {
-	int sub = neg ? -1 : 1;
-	Matrix res(m1->d);
+Matrix* addMatrices(Matrix* m1, Matrix* m2, bool neg=true) {
+	int sub = neg ? 1 : -1;
+	Matrix* res = new Matrix(m1->d);
 	for(int i = 0; i < m1->d * m1->d; i++)
-		res.mat[i] = m1->mat[i] + sub * m2->mat[i];
+		res->mat[i] = m1->mat[i] + sub * m2->mat[i];
 	return res;
 }
 
-template <class M>
-Matrix multiplyMatrices(M* m1, M* m2) {
-	Matrix res(m1->d);
+template <class M, class T>
+Matrix* multiplyMatricesStandard(M* m1, T* m2) {
+	Matrix* res = new Matrix(m1->d);
 
 	for (int row = 0; row < m1->d; row++) {
 		for (int col = 0; col < m1->d; col++) {
 			for (int k = 0; k < m1->d; k++) {
-				res.set(row,col,
-					res.get(row,col) + m1->get(row,k) * m2->get(k, col));
+				res->set(row,col,
+					res->get(row,col) + m1->get(row,k) * m2->get(k, col));
 			}
 		}
 	}
 
+	return res;
+}
+
+template <class M>
+Matrix multiplyMatricesStrassens(M* m1, M* m2, int parentd) {
+	subMat* s1 = splitMatrix(m1);
+	subMat* s2 = splitMatrix(m2);
+	subMat* A = &s1[0];
+	subMat* B = &s1[1];
+	subMat* C = &s1[2];
+	subMat* D = &s1[3];
+	subMat* E = &s2[0];
+	subMat* F = &s2[1];
+	subMat* G = &s2[2];
+	subMat* H = &s2[3];
+
+	Matrix* FmH = addMatrices(F, H, false);
+	Matrix* AB = addMatrices(A, B);
+	Matrix* CD = addMatrices(C, D);
+	Matrix* GmE = addMatrices(G, E, false);
+	Matrix* AD = addMatrices(A, D);
+	Matrix* EH = addMatrices(E, H);
+	Matrix* BmD = addMatrices(B, D, false);
+	Matrix* GH = addMatrices(G, H);
+	Matrix* AmC = addMatrices(A, C, false);
+	Matrix* EF = addMatrices(E, F);
+
+	Matrix* p1 = multiplyMatricesStandard(A, FmH);
+	Matrix* p2 = multiplyMatricesStandard(AB, H);
+	Matrix* p3 = multiplyMatricesStandard(CD, E);
+	Matrix* p4 = multiplyMatricesStandard(D, GmE);
+	Matrix* p5 = multiplyMatricesStandard(AD, EH);
+	Matrix* p6 = multiplyMatricesStandard(BmD, GH);
+	Matrix* p7 = multiplyMatricesStandard(AmC, EF);
+
+	Matrix* p5p4 = addMatrices(p5, p4);
+	Matrix* p2mp6 = addMatrices(p2,p6,false);
+	Matrix* p5p1 = addMatrices(p5, p1);
+	Matrix* p3p7 = addMatrices(p3, p7);
+
+	Matrix* q1 = addMatrices(p5p4, p2mp6, false);
+	Matrix* q2 = addMatrices(p1, p2);
+	Matrix* q3 = addMatrices(p3, p4);
+	Matrix* q4 = addMatrices(p5p1, p3p7, false);
+
+	Matrix res(q1, q2, q3, q4, parentd);
+
+
+	delete s1;
+	delete s2;
+	delete FmH;
+	delete AB;
+	delete CD;
+	delete GmE;
+	delete AD;
+	delete EH;
+	delete BmD;
+	delete GH;
+	delete AmC;
+	delete EF;
+	delete p5p4;
+	delete p2mp6;
+	delete p5p1;
+	delete p3p7;
+	delete p1;
+	delete p2;
+	delete p3;
+	delete p4;
+	delete p5;
+	delete p6;
+	delete p7;
+	delete q1;
+	delete q2;
+	delete q3;
+	delete q4;
 	return res;
 }
 
@@ -223,17 +337,28 @@ int main(int argc, char* argv[]) {
 		m2.mat[i] = std::stoi(buff);
 	}
 
-	m1.printMatrix();
+	// m1.printMatrix();
+	// printf("\n");
 	// m2.printMatrix();
 
-	
-	subMat* arr = splitMatrix(&m1);
 
-	for(int i = 0; i < 4; i++) {
-		printf("\n"); 
-		arr[i].printMatrix();
-		printf("\n"); 
-	}
+	// Matrix* mult = multiplyMatricesStandard(&m1, &m2);
+	Matrix mults = multiplyMatricesStrassens(&m1, &m2, d);
+	
+	// printf("\n");
+
+	// mult->printMatrix();
+	// printf("\n");
+	mults.printMatrix();
+
+	
+	// subMat* arr = splitMatrix(&m1);
+
+	// for(int i = 0; i < 4; i++) {
+	// 	printf("\n"); 
+	// 	arr[i].printMatrix();
+	// 	printf("\n"); 
+	// }
 
 
 
@@ -245,7 +370,7 @@ int main(int argc, char* argv[]) {
 	// 	printf("\n"); 
 	// }
 
-	Matrix testmult = multiplyMatrices(&arr[0], &arr[1]);
-	testmult.printMatrix();
+	// Matrix testmult = multiplyMatricesStandard(&arr[0], &arr[1]);
+	// testmult.printMatrix();
 
 }
