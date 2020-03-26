@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <fstream>
+#include <type_traits>
 
 const int MAXLINE = 256;
 
@@ -188,6 +189,22 @@ Matrix addMatrices(Matrix* m1, Matrix* m2, bool neg=false) {
 	return res;
 }
 
+template <class M>
+Matrix multiplyMatrices(M* m1, M* m2) {
+	Matrix res(m1->d);
+
+	for (int row = 0; row < m1->d; row++) {
+		for (int col = 0; col < m1->d; col++) {
+			for (int k = 0; k < m1->d; k++) {
+				res.set(row,col,
+					res.get(row,col) + m1->get(row,k) * m2->get(k, col));
+			}
+		}
+	}
+
+	return res;
+}
+
 int main(int argc, char* argv[]) {
 	int d = std::stoi(argv[2]);
 	char* inputfile = argv[3];
@@ -228,6 +245,7 @@ int main(int argc, char* argv[]) {
 	// 	printf("\n"); 
 	// }
 
-	Matrix testadd = addMatrices(&arr[0], &arr[1]);
-	testadd.printMatrix();
+	Matrix testmult = multiplyMatrices(&arr[0], &arr[1]);
+	testmult.printMatrix();
+
 }
