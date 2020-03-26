@@ -4,7 +4,7 @@
 
 
 #define MAXLINE 256
-#define CUTOFF 200
+#define CUTOFF 600
 
 
 // NOTE: All matrix arithmetic assumes equal dimensions
@@ -18,11 +18,12 @@ struct Matrix {
 	// this might speed up accesses who knows.
 	Matrix(int d) {
 		actuald = d;
+		mat = new int[actuald * actuald];
 		if(actuald % 2 != 0)
 			this->d = actuald + 1;
 		else this->d = actuald;
 
-		mat = new int[actuald*actuald];
+		
 	};
 
 	Matrix(Matrix* q1, Matrix* q2, Matrix* q3, Matrix* q4, int parentd) {
@@ -232,11 +233,12 @@ Matrix* addMatrices(Matrix* m1, Matrix* m2, bool neg=true) {
 }
 
 template <class M, class T>
-Matrix* multiplyMatricesStandard(M* m1, T* m2) {
-	Matrix* res = new Matrix(m1->d);
+Matrix* multiplyMatricesStandard(M* m1, T* m2, int parentd) {
+	Matrix* res = new Matrix(parentd);
 
 	for (int row = 0; row < m1->d; row++) {
 		for (int col = 0; col < m1->d; col++) {
+			res->set(row,col,0);
 			for (int k = 0; k < m1->d; k++) {
 				res->set(row,col,
 					res->get(row,col) + m1->get(row,k) * m2->get(k, col));
@@ -321,7 +323,7 @@ Matrix* multiplyMatricesStrassens(M* m1, T* m2, int parentd) {
 		delete q3;
 		delete q4;
 		return res;
-	} else return multiplyMatricesStandard(m1, m2);
+	} else return multiplyMatricesStandard(m1, m2, parentd);
 }
 
 int main(int argc, char* argv[]) {
@@ -341,10 +343,10 @@ int main(int argc, char* argv[]) {
 		if (infile.getline(buff, MAXLINE) )
 		m2.mat[i] = std::stoi(buff);
 	}
+	infile.close();
 
 	Matrix* mults = multiplyMatricesStrassens(&m1, &m2, d);
 
-	mults->actuald = d;
 	mults->printMatrix();
 
 	delete mults;
