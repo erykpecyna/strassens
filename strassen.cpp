@@ -3,6 +3,10 @@
 
 const int MAXLINE = 256;
 
+// Note: this could have been done in half the lines of code but
+// by the time I realized I should be using inheritance, it was
+// too late for my lazy self to go back and change it. 
+
 struct Matrix {
 	int* mat;
 	int actuald;
@@ -27,10 +31,21 @@ struct Matrix {
 		int index = row * d + col;
 		if(row == actuald || col == actuald)
 			return 0;
-		index -= row;
+		if(actuald != d)
+			index -= row;
 		if(row < actuald || col < actuald)
 			return mat[index];
 		else return 0;
+	}
+
+	void set(int row, int col, int val) {
+		int index = row * d + col;
+		if(row == actuald || col == actuald)
+			return;
+		if(actuald != d)
+			index -= row;
+		if(row < actuald || col < actuald)
+			mat[index] = val;
 	}
 
 	// For testing
@@ -154,6 +169,25 @@ subMat* splitMatrix(Matrix* parent) {
 	return arr;
 }
 
+Matrix addMatrices(subMat* m1, subMat* m2, bool neg=false) {
+	int sub = neg ? -1 : 1;
+	Matrix res(m1->d);
+	for(int row = 0; row < m1->d; row++) {
+		for(int col = 0; col < m1->d; col++)
+			res.set(row,col,m1->get(row,col) + sub * m2->get(row, col));
+	}
+
+	return res;
+}
+
+Matrix addMatrices(Matrix* m1, Matrix* m2, bool neg=false) {
+	int sub = neg ? -1 : 1;
+	Matrix res(m1->d);
+	for(int i = 0; i < m1->d * m1->d; i++)
+		res.mat[i] = m1->mat[i] + sub * m2->mat[i];
+	return res;
+}
+
 int main(int argc, char* argv[]) {
 	int d = std::stoi(argv[2]);
 	char* inputfile = argv[3];
@@ -184,11 +218,16 @@ int main(int argc, char* argv[]) {
 		printf("\n"); 
 	}
 
-	subMat* sarr = splitMatrix(&arr[0]);
 
-	for(int i = 0; i < 4; i++) {
-		printf("\n"); 
-		sarr[i].printMatrix();
-		printf("\n"); 
-	}
+
+	// subMat* sarr = splitMatrix(&arr[0]);
+
+	// for(int i = 0; i < 4; i++) {
+	// 	printf("\n"); 
+	// 	sarr[i].printMatrix();
+	// 	printf("\n"); 
+	// }
+
+	Matrix testadd = addMatrices(&arr[0], &arr[1]);
+	testadd.printMatrix();
 }
