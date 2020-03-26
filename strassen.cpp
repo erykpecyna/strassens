@@ -87,6 +87,43 @@ struct subMat {
 	}
 };
 
+subMat* splitMatrix(subMat* parent) {
+	int splitind = parent->d / 2;
+
+	subMat m1(parent->orig,
+		splitind,
+		parent->rowstart,
+		parent->colstart,
+		parent->rowstart + splitind,
+		parent->colstart + splitind);
+	subMat m2(parent->orig,
+		splitind,
+		parent->rowstart,
+		parent->colstart + splitind,
+		parent->rowstart + splitind,
+		parent->colend);
+	subMat m3(parent->orig,
+		splitind,
+		parent->rowstart + splitind,
+		parent->colstart,
+		parent->rowend,
+		parent->colstart + splitind);
+	subMat m4(parent->orig,
+		splitind,
+		parent->rowstart + splitind,
+		parent->colstart + splitind,
+		parent->rowend,
+		parent->colend);
+	
+	subMat* arr = new subMat[4];
+	arr[0] = m1;
+	arr[1] = m2;
+	arr[2] = m3;
+	arr[3] = m4;
+
+	return arr;
+}
+
 subMat* splitMatrix(Matrix* parent) {
 	int splitind = parent->d / 2;
 	int actuald = parent->actuald;
@@ -144,6 +181,14 @@ int main(int argc, char* argv[]) {
 	for(int i = 0; i < 4; i++) {
 		printf("\n"); 
 		arr[i].printMatrix();
+		printf("\n"); 
+	}
+
+	subMat* sarr = splitMatrix(&arr[0]);
+
+	for(int i = 0; i < 4; i++) {
+		printf("\n"); 
+		sarr[i].printMatrix();
 		printf("\n"); 
 	}
 }
