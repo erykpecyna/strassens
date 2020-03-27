@@ -4,7 +4,9 @@
 
 
 #define MAXLINE 256
+#ifndef CUTOFF
 #define CUTOFF 600
+#endif
 
 
 // NOTE: All matrix arithmetic assumes equal dimensions
@@ -87,13 +89,14 @@ struct Matrix {
 			mat[index] = val;
 	}
 
-	// For testing
 	void printMatrix() {
 		for(int row = 0; row < actuald; row++) {
 			printf("%i ", get(row,row));
 			printf("\n");
 		}
 	};
+
+	// For testing
 	// void printMatrix() {
 	// 	for(int row = 0; row < d; row++) {
 	// 		for(int col = 0; col < d; col++) 
@@ -251,7 +254,7 @@ Matrix* multiplyMatricesStandard(M* m1, T* m2, int parentd) {
 
 template <class M, class T>
 Matrix* multiplyMatricesStrassens(M* m1, T* m2, int parentd) {
-	if(parentd > CUTOFF) {
+	if(parentd > CUTOFF) {	
 		subMat* s1 = splitMatrix(m1);
 		subMat* s2 = splitMatrix(m2);
 		subMat* A = &s1[0];
