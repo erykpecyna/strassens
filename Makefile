@@ -1,4 +1,4 @@
-CUTOFF?=647
+CUTOFF?=658
 CXX = g++
 CXXFLAGS = -Wall -g -O3
 

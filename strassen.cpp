@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <fstream>
 #include <type_traits>
-
+#include<random>
+#include<chrono>
 
 #define MAXLINE 256
 #ifndef CUTOFF
@@ -330,6 +331,49 @@ Matrix* multiplyMatricesStrassens(M* m1, T* m2, int parentd) {
 }
 
 int main(int argc, char* argv[]) {
+	
+	// Triangle stuff
+	if(std::stof(argv[1]) > 0 && std::stof(argv[1]) < 1) {
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    	std::mt19937 generator(seed);
+    	std::bernoulli_distribution bern(std::stof(argv[1]));
+		Matrix* randGraph;
+		
+		float total= 0;
+
+		for(int _ = 0; _ < 5; _++) {
+			randGraph = new Matrix(1024);
+
+			for (int i = 0; i < 1024; i++) {
+				for (int j = i; j < 1024; j++) {
+					if(bern(generator)) {
+						randGraph->set(i, j, 1);
+						randGraph->set(j, i, 1);
+					} else {
+						randGraph->set(i,j,0);
+						randGraph->set(j,i,0);
+					}
+				}
+			}
+
+			Matrix* result1 = multiplyMatricesStrassens(randGraph, randGraph, 1024);
+			Matrix* result2 = multiplyMatricesStrassens(result1, randGraph, 1024);
+			delete result1;
+
+			for(int i = 0; i < 1024; i++) {
+				total += result2->get(i,i);
+			}
+			delete result2;
+			delete randGraph;
+		}
+
+		total = total / 30;
+
+		printf("The average amount of triangles with probability %s is: %f\n", argv[1], total);
+		return 0;
+	}
+
+
 	int d = std::stoi(argv[2]);
 	char* inputfile = argv[3];
 
