@@ -345,7 +345,8 @@ int main(int argc, char* argv[]) {
 			randGraph = new Matrix(1024);
 
 			for (int i = 0; i < 1024; i++) {
-				for (int j = i; j < 1024; j++) {
+				randGraph->set(i,i, 0);
+				for (int j = i + 1; j < 1024; j++) {
 					if(bern(generator)) {
 						randGraph->set(i, j, 1);
 						randGraph->set(j, i, 1);
